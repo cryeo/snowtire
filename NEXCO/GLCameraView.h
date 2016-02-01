@@ -6,9 +6,13 @@
 
 class GLCameraView : public GLView<GLCameraView> {
 public:
-	static void initialize(int _offsetX, int _offsetY, int _width, int _height, string _title, ThreadData* _threadData);
-    static void loadImage(IplImage* _image);
-	static void timer(int value);
-	static void display();
-    static void keyboard(uchar key, int x, int y);
+    GLCameraView() : GLView<GLCameraView>() {}
+    GLCameraView(int _offsetX, int _offsetY, int _width, int _height, string _title) : GLView<GLCameraView>(_offsetX, _offsetY, _width, _height, _title) {}
+    ~GLCameraView() {}
+
+    void initialize();
+    void display();
+    void setCallback();
 };
+
+GLCameraView* GLView<GLCameraView>::currentInstance;

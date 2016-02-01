@@ -153,7 +153,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GLCameraView.cpp" />
-    <ClCompile Include="GLFrontTireView.cpp" />
+    <ClCompile Include="GLTireView.cpp" />
+    <ClCompile Include="GLView.cpp" />
     <ClCompile Include="GLWindow.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
@@ -161,7 +162,7 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="GLCameraView.h" />
     <ClInclude Include="GLCommon.h" />
-    <ClInclude Include="GLFrontTireView.h" />
+    <ClInclude Include="GLTireView.h" />
     <ClInclude Include="GLView.h" />
     <ClInclude Include="GLWindow.h" />
     <ClInclude Include="XIQCamera.h" />

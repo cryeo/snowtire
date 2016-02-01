@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="ソース ファイル">
@@ -16,6 +16,9 @@
     <Filter Include="ソース ファイル\GL">
       <UniqueIdentifier>{35fceb11-d6ed-44c2-a79e-c5d582c39a3b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\GL">
+      <UniqueIdentifier>{db8e01e4-6e91-4084-8564-7a2477960545}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -27,31 +30,34 @@
     <ClCompile Include="GLCameraView.cpp">
       <Filter>ソース ファイル\GL</Filter>
     </ClCompile>
-    <ClCompile Include="GLFrontTireView.cpp">
+    <ClCompile Include="GLView.cpp">
+      <Filter>ソース ファイル\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="GLTireView.cpp">
       <Filter>ソース ファイル\GL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Common.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="GLCameraView.h">
+      <Filter>ヘッダー ファイル\GL</Filter>
     </ClInclude>
-    <ClInclude Include="GLWindow.h">
-      <Filter>ソース ファイル\GL</Filter>
+    <ClInclude Include="GLCommon.h">
+      <Filter>ヘッダー ファイル\GL</Filter>
     </ClInclude>
     <ClInclude Include="GLView.h">
-      <Filter>ソース ファイル\GL</Filter>
+      <Filter>ヘッダー ファイル\GL</Filter>
     </ClInclude>
-    <ClInclude Include="GLCameraView.h">
-      <Filter>ソース ファイル\GL</Filter>
+    <ClInclude Include="GLWindow.h">
+      <Filter>ヘッダー ファイル\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="XIQCamera.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="GLCommon.h">
-      <Filter>ソース ファイル\GL</Filter>
-    </ClInclude>
-    <ClInclude Include="GLFrontTireView.h">
-      <Filter>ソース ファイル\GL</Filter>
+    <ClInclude Include="GLTireView.h">
+      <Filter>ヘッダー ファイル\GL</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -17,6 +17,8 @@
 #include <sys/types.h> 
 #include <cstring>
 #include <cerrno>
+#include <memory>
+
 #include <WinSock2.h>
 
 using namespace std;
@@ -63,6 +65,13 @@ using namespace std;
 
 #define IMAGE_WIDTH 640
 #define IMAGE_HEIGHT 480
+
+#define DEBUG
+#ifdef DEBUG
+    #define LOG(...) Logger::log(__FUNCTION__, __VA_ARGS__)
+#else
+    #define LOG(...) ()
+#endif
 
 enum States {
     INITIAL = 0,

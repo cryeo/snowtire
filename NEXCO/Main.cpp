@@ -7,8 +7,8 @@ using namespace std;
 ThreadData* threadData;
 GLWindow* glWindow;
 
-void threadCamera(ThreadData* threadData) {
-    Logger::log(__FUNCTION__, "Start");
+void threadCamera(ThreadData* threadData, GLWindow* glWindow) {
+    LOG("Start");
 
 	XI_IMG image;
 	HANDLE xiH = NULL;
@@ -17,7 +17,7 @@ void threadCamera(ThreadData* threadData) {
 
 	xiGetNumberDevices(&dwNumberOfDevices);
 	if (!dwNumberOfDevices) {
-        Logger::log(__FUNCTION__, "Camera was NOT found.");
+        LOG("Camera was NOT found.");
 	}
 
 	xiOpenDevice(0, &xiH);
@@ -26,8 +26,8 @@ void threadCamera(ThreadData* threadData) {
 	//xiSetParamInt(xiH, XI_PRM_TRG_SOURCE, XI_TRG_OFF);						// for trigger mode
 	xiSetParamInt(xiH, XI_PRM_EXPOSURE, exposure);
 	xiGetParamFloat(xiH, XI_PRM_FRAMERATE XI_PRM_INFO_MAX, &maxFps);
-    Logger::log(__FUNCTION__, "Max framerate : %f [fps]", maxFps);
-    Logger::log(__FUNCTION__, "Exposure time : %d [us]", exposure);
+    LOG("Max framerate : %f [fps]", maxFps);
+    LOG("Exposure time : %d [us]", exposure);
 
 	xiSetParamInt(xiH, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);	// if you use the trigger mode, you have to change the acquisition timing mode
 	xiSetParamFloat(xiH, XI_PRM_FRAMERATE, XI_FRAMERATE);
@@ -38,14 +38,14 @@ void threadCamera(ThreadData* threadData) {
 	xiStartAcquisition(xiH);
 
     xiGetImage(xiH, 5000, &image);
+    threadData->startCapture = true;
 
     IplImage* capture = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
 	while (true) {
         xiGetImage(xiH, 5000, &image);
 		memcpy(capture->imageData, image.bp, IMAGE_WIDTH * IMAGE_HEIGHT * 3);
         threadData->setBuffer(capture);
-        threadData->startCapture = true;
-        //Logger::log(__FUNCTION__, "%d %d", threadData->lastSetFrame, threadData->lastGetFrame);
+        //LOG("%d %d", threadData->lastSetFrame, threadData->lastGetFrame);
 	}
 
     threadData->startCapture = false;
@@ -53,21 +53,18 @@ void threadCamera(ThreadData* threadData) {
 	xiCloseDevice(xiH);
 }
 
-void threadOpenGL(int argc, char** argv, ThreadData *threadData) {
-    Logger::log(__FUNCTION__, "Waiting until camera is ready to capture");
+void threadOpenGL(ThreadData* threadData, GLWindow* glWindow) {
+    LOG("Waiting until camera is ready to capture");
     while (!threadData->startCapture);
-    Logger::log(__FUNCTION__, "Start");
+    LOG("Start");
 
-    glWindow = new GLWindow(argc, argv, threadData);
     glWindow->showWindow();
-
-    delete glWindow;
 }
 
-void threadTracking(ThreadData *threadData) {
-    Logger::log(__FUNCTION__, "Waiting until camera is ready to capture");
+void threadTracking(ThreadData* threadData, GLWindow* glWindow) {
+    LOG("Waiting until camera is ready to capture");
     while (!threadData->startCapture);
-    Logger::log(__FUNCTION__, "Start");
+    LOG("Start");
 
     int state = 0, beforeState = 0;
     IplImage* base = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
@@ -76,7 +73,7 @@ void threadTracking(ThreadData *threadData) {
     IplImage* currGray = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 1);
     IplImage* diff = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 1);
     
-    int max = 0;
+    double max = 0;
     IplImage* optimal = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
 
     while (true) {
@@ -110,38 +107,59 @@ void threadTracking(ThreadData *threadData) {
 }
 
 void threadSignal(ThreadData *threadData) {
-    Logger::log(__FUNCTION__, "Waiting until camera is ready to capture");
+    LOG("Waiting until camera is ready to capture");
     while (!threadData->startCapture);
-    Logger::log(__FUNCTION__, "Start");
+    LOG("Start");
 
     WSADATA wsa;
-    WSAStartup(MAKEWORD(2, 2), &wsa);
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+        LOG("WSAStartup failed");
+        exit(-1);
+    }
 
-    SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
+    SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == INVALID_SOCKET) {
+        LOG("Invalid Socket. Error code : %d", WSAGetLastError());
+        exit(-1);
+    }
 
     sockaddr_in address;
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = inet_addr("133.11.191.233");
     address.sin_port = htons(6307);
-    connect(s, (sockaddr*)&address, sizeof(address));
 
-    Logger::log(__FUNCTION__, "Connection estabilished");
+    auto connection = [&sock](sockaddr_in &address) {
+        LOG("Connecting");
+        while (connect(sock, (sockaddr*)&address, sizeof(address)) != 0);
+        LOG("Connection estabilished");
+    };
+
+    connection(address);
 
     int res;
     char buf[255] = "\0";
     while (true) {
-        res = recv(s, buf, 255, 0);
+        res = recv(sock, buf, 255, 0);
         if (res > 0) {
             if (strlen(buf) > 0) {
                 threadData->state->transit(buf[0]);
             }
         }
         else if (res == 0) {
-            Logger::log(__FUNCTION__, "Connection closed");
+            LOG("Connection closed. reconnect");
+            connection(address);
             break;
         }
         else {
-            Logger::log(__FUNCTION__, "recv failed: %d", WSAGetLastError());
+            int err = WSAGetLastError();
+            LOG("Receive failed: Error code : %d", err);
+            switch (err) {
+            case WSAENOTCONN:
+                connection(address);
+                break;
+            default:
+                exit(-1);
+            }
             break;
         }
     }
@@ -149,18 +167,20 @@ void threadSignal(ThreadData *threadData) {
 
 int main(int argc, char** argv) {
     threadData = new ThreadData();
+    glWindow = new GLWindow(argc, argv, threadData);
 
     vector<thread> threads;
-    threads.push_back(thread(threadCamera, threadData));
-    threads.push_back(thread(threadOpenGL, argc, argv, threadData));
+    threads.push_back(thread(threadCamera, threadData, glWindow));
+    threads.push_back(thread(threadOpenGL, threadData, glWindow));
+    threads.push_back(thread(threadTracking, threadData, glWindow));
     threads.push_back(thread(threadSignal, threadData));
-    threads.push_back(thread(threadTracking, threadData));
 
     for (auto &thread : threads) {
 		thread.join();
 		cout << "thread ok";
 	}
 
+    delete glWindow;
     delete threadData;
 	return 0;
 }
