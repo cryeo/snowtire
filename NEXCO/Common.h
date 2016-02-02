@@ -2,8 +2,6 @@
 #pragma warning(disable:4819) // unicode
 #pragma once
 
-#include <cv.h>
-#include <opencv2/opencv.hpp>
 #include <vector>
 #include <string>
 #include <cstdio>
@@ -18,60 +16,23 @@
 #include <cstring>
 #include <cerrno>
 #include <memory>
+#include <direct.h>
 
-#include <WinSock2.h>
+#include "OpenCV.h"
+#include "Socket.h"
+#include "Logger.h"
 
 using namespace std;
 
-#ifdef WIN32
-	#define CV_VERSION_STR CVAUX_STR(CV_MAJOR_VERSION) CVAUX_STR(CV_MINOR_VERSION) CVAUX_STR(CV_SUBMINOR_VERSION)
-
-	#ifdef _DEBUG
-		#define CV_PATH "C:\\opencv2411\\build\\x64\\vc12\\staticlib\\"
-		#define CV_EXT_STR "d.lib"
-	#else
-        #define CV_PATH "C:\\opencv2411\\build\\x64\\vc12\\staticlib\\"
-		#define CV_EXT_STR ".lib"
-	#endif
-
-#pragma comment(lib, CV_PATH "IlmImf"	CV_EXT_STR)
-#pragma comment(lib, CV_PATH "libjasper"	CV_EXT_STR)
-#pragma comment(lib, CV_PATH "libjpeg"	CV_EXT_STR)
-#pragma comment(lib, CV_PATH "libpng"	CV_EXT_STR)
-#pragma comment(lib, CV_PATH "libtiff"	CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_calib3d" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_contrib" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_core" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_features2d" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_flann" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_gpu" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_highgui" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_imgproc" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_legacy" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_ml" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_nonfree" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_objdetect" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_ocl" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_photo" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_stitching" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_superres" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_ts" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_video" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "opencv_videostab" CV_VERSION_STR CV_EXT_STR)
-#pragma comment(lib, CV_PATH "zlib"	CV_EXT_STR)
-
-#pragma comment(lib, "ws2_32.lib")
-#endif
+extern float frameRate;
+extern string serverHost;
+extern int serverPort;
+extern bool debug;
+extern bool method;
+extern int bufferSize;
 
 #define IMAGE_WIDTH 640
 #define IMAGE_HEIGHT 480
-
-#define DEBUG
-#ifdef DEBUG
-    #define LOG(...) Logger::log(__FUNCTION__, __VA_ARGS__)
-#else
-    #define LOG(...) ()
-#endif
 
 enum States {
     INITIAL = 0,
@@ -162,40 +123,4 @@ public:
         }
         bool signal;
     };
-};
-
-
-namespace Logger2 {
-    template<typename...Args>
-    struct Log;
-
-    template<typename T, typename...Args>
-    struct Log<T, Args...>  {
-        void operator()(T head, Args... tail) {
-            cout << " " << head;
-            Log<Args...>{}(tail...);
-        }
-    };
-
-    template<>
-    struct Log<> {
-        void operator()() {
-            cout << endl;
-        }
-    };
-
-    template<typename T, typename... Args>
-    void log(T caller, Args... args) {
-        cout << "[" << caller << "]";
-        Log<Args...>{}(args...);
-    }
-};
-
-namespace Logger {
-    template<typename T, typename... Args>
-    inline void log(T caller, Args... args) {
-        printf("[%s] ", caller);
-        printf(args...);
-        printf("\n");
-    }
 };

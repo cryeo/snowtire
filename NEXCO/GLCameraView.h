@@ -8,7 +8,7 @@ class GLCameraView : public GLView<GLCameraView> {
 public:
     GLCameraView() : GLView<GLCameraView>() {}
     GLCameraView(int _offsetX, int _offsetY, int _width, int _height, string _title) : GLView<GLCameraView>(_offsetX, _offsetY, _width, _height, _title) {}
-    ~GLCameraView() {}
+    virtual ~GLCameraView() {}
 
     void initialize();
     void display();

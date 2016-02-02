@@ -3,7 +3,8 @@
 #include "Common.h"
 #include "GLCommon.h"
 #include "GLCameraView.h"
-#include "GLTireView.h"
+#include "GLFrontTireView.h"
+#include "GLRearTireView.h"
 
 class GLWindow {
 public:
@@ -12,11 +13,12 @@ public:
 
 	void showWindow();
     void setFrontTireImage(IplImage* _image);
+    void setRearTireImage(IplImage* _image);
 
 private:
     ThreadData* threadData;
     GLCameraView* glCameraView;
-    GLTireView* glFrontTireView;
-    GLTireView* glRearTireView;
+    GLFrontTireView* glFrontTireView;
+    GLRearTireView* glRearTireView;
 };
 

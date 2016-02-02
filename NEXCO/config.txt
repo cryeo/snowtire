@@ -1,0 +1,6 @@
+framerate 500
+host 133.11.191.233
+port 6307
+debug true
+method diff
+buffer 1000

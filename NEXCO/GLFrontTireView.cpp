@@ -1,7 +1,7 @@
-#include "GLTireView.h"
+#include "GLFrontTireView.h"
 
-void GLTireView::initialize() {
-    GLView<GLTireView>::initialize();
+void GLFrontTireView::initialize() {
+    GLView<GLFrontTireView>::initialize();
 
     glEnable(GL_DEPTH_TEST);
 
@@ -11,13 +11,13 @@ void GLTireView::initialize() {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->width, this->height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, this->image->imageData);
 }
 
-void GLTireView::display() {
+void GLFrontTireView::display() {
     glTexSubImage2D(GL_TEXTURE_2D,
         0,
         0, 0,
-        GLTireView::width, GLTireView::height,
+        GLFrontTireView::width, GLFrontTireView::height,
         GL_BGR_EXT, GL_UNSIGNED_BYTE,
-        GLTireView::image->imageData);
+        GLFrontTireView::image->imageData);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
@@ -39,7 +39,7 @@ void GLTireView::display() {
     glutSwapBuffers();
 }
 
-void GLTireView::setCallback() {
-    glutDisplayFunc(GLTireView::displayCallback);
-    glutTimerFunc(1000 / REFRESH_RATE, GLTireView::timerCallback, 0);
+void GLFrontTireView::setCallback() {
+    glutDisplayFunc(GLFrontTireView::displayCallback);
+    glutTimerFunc(1000 / REFRESH_RATE, GLFrontTireView::timerCallback, 0);
 }

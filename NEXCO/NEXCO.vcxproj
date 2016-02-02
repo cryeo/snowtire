@@ -135,7 +135,7 @@
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>MinSpace</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -153,7 +153,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GLCameraView.cpp" />
-    <ClCompile Include="GLTireView.cpp" />
+    <ClCompile Include="GLFrontTireView.cpp" />
+    <ClCompile Include="GLRearTireView.cpp" />
     <ClCompile Include="GLView.cpp" />
     <ClCompile Include="GLWindow.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -162,10 +163,17 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="GLCameraView.h" />
     <ClInclude Include="GLCommon.h" />
-    <ClInclude Include="GLTireView.h" />
+    <ClInclude Include="GLFrontTireView.h" />
+    <ClInclude Include="GLRearTireView.h" />
     <ClInclude Include="GLView.h" />
     <ClInclude Include="GLWindow.h" />
+    <ClInclude Include="Logger.h" />
+    <ClInclude Include="OpenCV.h" />
+    <ClInclude Include="Socket.h" />
     <ClInclude Include="XIQCamera.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="config.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
