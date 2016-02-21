@@ -81,12 +81,11 @@ void initialize(int argc, char** argv) {
 
 void threadCamera() {
     LOG("Start");
-    XI_IMG capture;
+    XI_IMG capturedImage;
     IplImage* image = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
-    using namespace std;
     while (true) {
-        crCamera->capture(capture);
-        memcpy(image->imageData, capture.bp, IMAGE_WIDTH * IMAGE_HEIGHT * 3);
+        crCamera->capture(capturedImage);
+        memcpy(image->imageData, capturedImage.bp, IMAGE_WIDTH * IMAGE_HEIGHT * 3);
         threadData->setBuffer(image);
     }
     cvReleaseImage(&image);

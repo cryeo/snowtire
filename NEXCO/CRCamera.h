@@ -9,7 +9,12 @@
 class CRCamera {
 public:
     CRCamera() {
-        this->iplImage = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
+        this->acquiring = false;
+    }
+
+    virtual ~CRCamera() {
+        this->stopAcquisition();
+        xiCloseDevice(this->xiH);
     }
 
     void initialize();
@@ -19,19 +24,22 @@ public:
     }
     
     inline int startAcquisition() {
-        return xiStartAcquisition(this->xiH);
+        int ret = xiStartAcquisition(this->xiH);
+        this->acquiring = (ret == XI_OK);
+        return ret;
     }
 
     inline int stopAcquisition() {
-        return xiStopAcquisition(this->xiH);
+        int ret = xiStopAcquisition(this->xiH);
+        this->acquiring = !(ret == XI_OK);
+        return ret;
     }
 
-    virtual ~CRCamera() {
-        cvReleaseImage(&iplImage);
-        xiCloseDevice(xiH);
+    inline bool isAcquiring() {
+        return this->acquiring;
     }
-
+private:
     HANDLE xiH;
-    IplImage* iplImage;
+    bool acquiring;
 };
 
