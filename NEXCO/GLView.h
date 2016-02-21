@@ -26,8 +26,8 @@ public:
         this->currentInstance = static_cast<T*>(this);
     }
 
-    void setThreadData(ThreadData* _threadData) {
-        this->threadData = _threadData;
+    void setCameraBuffer(CameraBuffer* _cameraBuffer) {
+        this->cameraBuffer = _cameraBuffer;
     }
 
     void timer(int value) {
@@ -63,5 +63,5 @@ protected:
 	std::string title;
 	GLuint windowId;
 	IplImage* image;
-    ThreadData* threadData;
+    CameraBuffer* cameraBuffer;
 };

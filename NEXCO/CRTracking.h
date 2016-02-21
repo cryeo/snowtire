@@ -5,7 +5,7 @@
 
 class CRTracking {
 public:
-    CRTracking(std::function<void(const CvArr*, const CvArr*, CvArr*)> _diffMethod, ThreadData* _threadData, CRSignal* _crSignal, GLWindow* _glWindow) : threadData(_threadData), crSignal(_crSignal), glWindow(_glWindow) {
+    CRTracking(std::function<void(const CvArr*, const CvArr*, CvArr*)> _diffMethod, CameraBuffer* _cameraBuffer, CRSignal* _crSignal, GLWindow* _glWindow) : cameraBuffer(_cameraBuffer), crSignal(_crSignal), glWindow(_glWindow) {
         this->base = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
         this->baseGray = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 1);
         this->curr = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
@@ -38,7 +38,7 @@ private:
 
     std::function<void(const CvArr*, const CvArr*, CvArr*)> diffMethod;
 
-    ThreadData* threadData;
+    CameraBuffer* cameraBuffer;
     CRSignal* crSignal;
     GLWindow* glWindow;
 };

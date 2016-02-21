@@ -19,14 +19,14 @@ void CRTracking::trace() {
 
     while (true) {
         state = this->crSignal->getState();
-        currentFrame = this->threadData->lastSetFrame;
+        currentFrame = this->cameraBuffer->lastSetFrame;
 
         switch (state) {
         case States::TIRE_IN:
             if (beforeState != state) {
                 baseFrame = currentFrame;
 
-                cvCopy(threadData->getBuffer(), base);
+                cvCopy(this->cameraBuffer->getBuffer(), base);
                 cvCvtColor(base, baseGray, CV_RGB2GRAY);
 
                 if (DEBUG) {
@@ -43,7 +43,7 @@ void CRTracking::trace() {
             }
             else {
                 endFrame = currentFrame;
-                cvCopy(threadData->getBuffer(), curr);
+                cvCopy(this->cameraBuffer->getBuffer(), curr);
                 cvCvtColor(curr, currGray, CV_RGB2GRAY);
 
                 diffMethod(baseGray, currGray, diff);

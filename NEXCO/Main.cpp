@@ -4,7 +4,7 @@
 #include "CRTracking.h"
 #include "CRCamera.h"
 
-ThreadData* volatile threadData;
+CameraBuffer* volatile cameraBuffer;
 GLWindow* volatile glWindow;
 CRSignal* volatile crSignal;
 CRTracking* volatile crTracking;
@@ -63,10 +63,10 @@ void loadConfig() {
 void initialize(int argc, char** argv) {
     LOG("Start");
 
-    threadData = new ThreadData(bufferSize);
-    glWindow = new GLWindow(argc, argv, threadData);
+    cameraBuffer = new CameraBuffer(bufferSize);
+    glWindow = new GLWindow(argc, argv, cameraBuffer);
     crSignal = new CRSignal();
-    crTracking = new CRTracking(cvAbsDiff, threadData, crSignal, glWindow);
+    crTracking = new CRTracking(cvAbsDiff, cameraBuffer, crSignal, glWindow);
     crCamera = new CRCamera();
 
     auto cvXorWithoutMask = [](const CvArr *src1, const CvArr *src2, CvArr *dst) {
@@ -86,7 +86,7 @@ void threadCamera() {
     while (true) {
         crCamera->capture(capturedImage);
         memcpy(image->imageData, capturedImage.bp, IMAGE_WIDTH * IMAGE_HEIGHT * 3);
-        threadData->setBuffer(image);
+        cameraBuffer->setBuffer(image);
     }
     cvReleaseImage(&image);
     crCamera->stopAcquisition();
@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
 	}
 
     delete glWindow;
-    delete threadData;
+    delete cameraBuffer;
     delete crSignal;
     delete crTracking;
     delete crCamera;

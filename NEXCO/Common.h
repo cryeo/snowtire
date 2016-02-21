@@ -33,10 +33,10 @@ extern int bufferSize;
 #define IMAGE_WIDTH 640
 #define IMAGE_HEIGHT 480
 
-class ThreadData {
+class CameraBuffer {
 public:
-    ThreadData() : ThreadData(500) {}
-    ThreadData(int _numBuffer) : numBuffer(_numBuffer) {
+    CameraBuffer() : CameraBuffer(500) {}
+    CameraBuffer(int _numBuffer) : numBuffer(_numBuffer) {
         this->lastSetFrame = -1;
         this->lastGetFrame = -1;
 
@@ -46,7 +46,7 @@ public:
         }
     }
 
-    virtual ~ThreadData() {
+    virtual ~CameraBuffer() {
         for (int i = 0; i < this->numBuffer; i++) {
             cvReleaseImage(&this->buffer[i]);
         }
