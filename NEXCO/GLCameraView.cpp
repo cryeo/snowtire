@@ -12,9 +12,7 @@ void GLCameraView::initialize() {
 }
 
 void GLCameraView::display() {
-    if (this->threadData->startCapture) {
-        this->setImage(this->threadData->getBuffer());
-    }
+    this->setImage(this->threadData->getBuffer());
 
     glTexSubImage2D(GL_TEXTURE_2D,
         0,

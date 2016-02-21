@@ -9,7 +9,7 @@ public:
     static T* currentInstance;
 
     GLView() {}
-    GLView(int _offsetX, int _offsetY, int _width, int _height, string _title) : offsetX(_offsetX), offsetY(_offsetY), width(_width), height(_height), title(_title) {
+    GLView(int _offsetX, int _offsetY, int _width, int _height, std::string _title) : offsetX(_offsetX), offsetY(_offsetY), width(_width), height(_height), title(_title) {
         this->image = cvCreateImage(cvSize(this->width, this->height), IPL_DEPTH_8U, 3);
         cvSet(this->image, cvScalar(0, 0, 0));
     }
@@ -60,7 +60,7 @@ protected:
 	int offsetY;
 	int width;
 	int height;
-	string title;
+	std::string title;
 	GLuint windowId;
 	IplImage* image;
     ThreadData* threadData;

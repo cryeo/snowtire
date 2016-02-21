@@ -1,26 +1,29 @@
 #include "Common.h"
-#include "XIQCamera.h"
 #include "GLWindow.h"
 #include "CRSignal.h"
 #include "CRTracking.h"
+#include "CRCamera.h"
 
 ThreadData* volatile threadData;
 GLWindow* volatile glWindow;
 CRSignal* volatile crSignal;
 CRTracking* volatile crTracking;
+CRCamera* volatile crCamera;
 
 float frameRate;
 int imageWidth;
 int imageHeight;
-string serverHost;
+std::string serverHost;
 int serverPort;
 bool debug;
 bool method;
 int bufferSize;
 
-void initialize() {
-    ifstream fin("config.txt");
-    string name, value;
+void loadConfig() {
+    LOG("Start");
+
+    std::ifstream fin("config.txt");
+    std::string name, value;
     while (!fin.eof()) {
         fin >> name >> value;
         if (name == "framerate") {
@@ -53,95 +56,71 @@ void initialize() {
         }
     }
     fin.close();
+
+    LOG("End");
 }
 
-void threadCamera() {
+void initialize(int argc, char** argv) {
     LOG("Start");
-
-	XI_IMG image;
-	HANDLE xiH = NULL;
-	DWORD dwNumberOfDevices = 0;
-	float maxFps;
-
-	xiGetNumberDevices(&dwNumberOfDevices);
-	if (!dwNumberOfDevices) {
-        LOG("Camera was NOT found.");
-	}
-
-	xiOpenDevice(0, &xiH);
-
-	int exposure = (int)(1000000.0 / XI_FRAMERATE);
-	xiSetParamInt(xiH, XI_PRM_EXPOSURE, exposure);
-	xiGetParamFloat(xiH, XI_PRM_FRAMERATE XI_PRM_INFO_MAX, &maxFps);
-    LOG("Max framerate : %f [fps]", maxFps);
-    LOG("Exposure time : %d [us]", exposure);
-
-	xiSetParamInt(xiH, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);
-	xiSetParamFloat(xiH, XI_PRM_FRAMERATE, XI_FRAMERATE);
-	xiSetParamInt(xiH, XI_PRM_IMAGE_DATA_FORMAT, XI_RGB24);
-
-	xiStartAcquisition(xiH);
-
-    xiGetImage(xiH, 5000, &image);
-    threadData->startCapture = true;
-
-    IplImage* capture = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
-	while (true) {
-        xiGetImage(xiH, 5000, &image);
-		memcpy(capture->imageData, image.bp, IMAGE_WIDTH * IMAGE_HEIGHT * 3);
-        threadData->setBuffer(capture);
-        _CrtDumpMemoryLeaks();
-	}
-
-    threadData->startCapture = false;
-    cvReleaseImage(&capture);
-	xiCloseDevice(xiH);
-}
-
-void threadOpenGL() {
-    LOG("Waiting until camera is ready to capture");
-    while (!threadData->startCapture);
-    LOG("Start");
-
-    glWindow->showWindow();
-}
-
-void threadTracking() {
-    LOG("Waiting until camera is ready to capture");
-    while (!threadData->startCapture);
-    LOG("Start");
-
-    crTracking->trace();
-}
-
-void threadSignal() {
-    LOG("Waiting until camera is ready to capture");
-    while (!threadData->startCapture);
-    LOG("Start");
-
-    crSignal->listen();
-}
-
-int main(int argc, char** argv) {
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-
-    initialize();
 
     threadData = new ThreadData(bufferSize);
     glWindow = new GLWindow(argc, argv, threadData);
     crSignal = new CRSignal();
     crTracking = new CRTracking(cvAbsDiff, threadData, crSignal, glWindow);
+    crCamera = new CRCamera();
 
     auto cvXorWithoutMask = [](const CvArr *src1, const CvArr *src2, CvArr *dst) {
         cvXor(src1, src2, dst);
     };
 
+    crCamera->initialize();
+    crCamera->startAcquisition();
 
-    vector<thread> threads;
-    threads.push_back(thread(threadCamera));
-    threads.push_back(thread(threadOpenGL));
-    threads.push_back(thread(threadTracking));
-    threads.push_back(thread(threadSignal));
+    LOG("End");
+}
+
+void threadCamera() {
+    LOG("Start");
+    XI_IMG capture;
+    IplImage* image = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
+    using namespace std;
+    while (true) {
+        crCamera->capture(capture);
+        memcpy(image->imageData, capture.bp, IMAGE_WIDTH * IMAGE_HEIGHT * 3);
+        threadData->setBuffer(image);
+    }
+    cvReleaseImage(&image);
+    crCamera->stopAcquisition();
+    LOG("End");
+}
+
+void threadOpenGL() {
+    LOG("Start");
+    glWindow->showWindow();
+    LOG("End");
+}
+
+void threadTracking() {
+    LOG("Start");
+    crTracking->trace();
+    LOG("End");
+}
+
+void threadSignal() {
+    LOG("Start");
+    crSignal->listen();
+    LOG("End");
+}
+
+int main(int argc, char** argv) {
+    loadConfig();
+    initialize(argc, argv);
+
+    std::vector<std::thread> threads;
+    threads.push_back(std::thread(threadCamera));
+    threads.push_back(std::thread(threadOpenGL));
+    threads.push_back(std::thread(threadTracking));
+    threads.push_back(std::thread(threadSignal));
 
     for (auto &thread : threads) {
 		thread.join();
@@ -149,5 +128,9 @@ int main(int argc, char** argv) {
 
     delete glWindow;
     delete threadData;
+    delete crSignal;
+    delete crTracking;
+    delete crCamera;
+
 	return 0;
 }

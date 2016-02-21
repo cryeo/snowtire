@@ -153,6 +153,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CRAutomaton.cpp" />
+    <ClCompile Include="CRCamera.cpp" />
     <ClCompile Include="CRSignal.cpp" />
     <ClCompile Include="CRTracking.cpp" />
     <ClCompile Include="GLCameraView.cpp" />
@@ -165,6 +166,7 @@
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="CRAutomaton.h" />
+    <ClInclude Include="CRCamera.h" />
     <ClInclude Include="CRSignal.h" />
     <ClInclude Include="CRTracking.h" />
     <ClInclude Include="GLCameraView.h" />
@@ -176,7 +178,6 @@
     <ClInclude Include="Logger.h" />
     <ClInclude Include="OpenCV.h" />
     <ClInclude Include="Socket.h" />
-    <ClInclude Include="XIQCamera.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="config.txt" />

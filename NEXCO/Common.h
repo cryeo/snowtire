@@ -2,12 +2,10 @@
 #pragma warning(disable:4819) // unicode
 #pragma once
 
-#define _CRTDBG_MAP_ALLOC
 #include <vector>
 #include <string>
 #include <cstdio>
 #include <cstdlib>
-#include <crtdbg.h>
 #include <iostream>
 #include <fstream>
 #include <chrono>
@@ -25,10 +23,8 @@
 #include "Socket.h"
 #include "Logger.h"
 
-using namespace std;
-
 extern float frameRate;
-extern string serverHost;
+extern std::string serverHost;
 extern int serverPort;
 extern bool debug;
 extern bool method;
@@ -43,7 +39,6 @@ public:
     ThreadData(int _numBuffer) : numBuffer(_numBuffer) {
         this->lastSetFrame = -1;
         this->lastGetFrame = -1;
-        this->startCapture = false;
 
         this->buffer = new IplImage*[this->numBuffer];
         for (int i = 0; i < this->numBuffer; i++) {
@@ -70,7 +65,6 @@ public:
     int numBuffer;
     int lastGetFrame;
     int lastSetFrame;
-    bool startCapture;
 };
 
 template <typename Target, typename Source>

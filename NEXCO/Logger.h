@@ -1,6 +1,6 @@
 #pragma once
 
-#define DEBUG (debug)
+#define DEBUG (true)
 #define LOG(...) (DEBUG ? Logger::log(__FUNCTION__, __VA_ARGS__) : Logger::log())
 
 namespace Logger {
@@ -31,7 +31,7 @@ namespace Logger {
     template<>
     struct Log<> {
         void operator()() {
-            cout << endl;
+            cout << std::endl;
         }
     };
 
