@@ -2,10 +2,12 @@
 #pragma warning(disable:4819) // unicode
 #pragma once
 
+#define _CRTDBG_MAP_ALLOC
 #include <vector>
 #include <string>
 #include <cstdio>
 #include <cstdlib>
+#include <crtdbg.h>
 #include <iostream>
 #include <fstream>
 #include <chrono>
@@ -16,7 +18,9 @@
 #include <cstring>
 #include <cerrno>
 #include <memory>
+#include <conio.h>
 #include <direct.h>
+
 
 #include "OpenCV.h"
 #include "Socket.h"
@@ -34,44 +38,10 @@ extern int bufferSize;
 #define IMAGE_WIDTH 640
 #define IMAGE_HEIGHT 480
 
-enum States {
-    INITIAL = 0,
-    TIRE_IN = 1,
-    TIRE_OUT = 2
-};
-
-class State {
-public:
-
-    State() : _state(States::INITIAL) {
-        this->transition[States::INITIAL][0] = States::TIRE_IN;
-        this->transition[States::INITIAL][1] = States::INITIAL;
-        this->transition[States::TIRE_IN][0] = States::INITIAL;
-        this->transition[States::TIRE_IN][1] = States::TIRE_OUT;
-        this->transition[States::TIRE_OUT][0] = States::TIRE_IN;
-        this->transition[States::TIRE_OUT][1] = States::INITIAL;
-    }
-
-    inline void transit(char _action) {
-        // f : 0, r : 1
-        int action = (_action == 'f') ? 0 : 1;
-        this->_state = this->transition[this->_state][action];
-    }
-
-    inline States getState() {
-        return this->_state;
-    }
-
-private:
-    States transition[3][2];
-    States _state;
-};
-
 class ThreadData {
 public:
     ThreadData() : ThreadData(500) {}
     ThreadData(int _numBuffer) : numBuffer(_numBuffer) {
-        this->state = new State();
         this->lastSetFrame = -1;
         this->lastGetFrame = -1;
         this->startCapture = false;
@@ -87,7 +57,6 @@ public:
             cvReleaseImage(&this->buffer[i]);
         }
         delete this->buffer;
-        delete this->state;
     }
 
     inline void setBuffer(IplImage* image) {
@@ -99,28 +68,8 @@ public:
     }
 
     IplImage** buffer;
-    State* state;
     int numBuffer;
     int lastGetFrame;
     int lastSetFrame;
     bool startCapture;
-
-    class Signal {
-    public:
-        Signal() : signal(false) {}
-        ~Signal() {}
-
-        inline void flipSignal() {
-            this->signal = !this->signal;
-        }
-
-        inline void setSignal(bool _signal) {
-            this->signal = _signal;
-        }
-
-        inline bool getSignal() {
-            return this->signal;
-        }
-        bool signal;
-    };
 };

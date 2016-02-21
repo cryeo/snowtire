@@ -135,7 +135,7 @@
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>MinSpace</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -152,6 +152,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CRAutomaton.cpp" />
+    <ClCompile Include="CRSignal.cpp" />
     <ClCompile Include="GLCameraView.cpp" />
     <ClCompile Include="GLFrontTireView.cpp" />
     <ClCompile Include="GLRearTireView.cpp" />
@@ -161,6 +163,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />
+    <ClInclude Include="CRAutomaton.h" />
+    <ClInclude Include="CRSignal.h" />
     <ClInclude Include="GLCameraView.h" />
     <ClInclude Include="GLCommon.h" />
     <ClInclude Include="GLFrontTireView.h" />

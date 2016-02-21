@@ -19,6 +19,12 @@
     <Filter Include="ヘッダー ファイル\GL">
       <UniqueIdentifier>{db8e01e4-6e91-4084-8564-7a2477960545}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\CR">
+      <UniqueIdentifier>{f73cfbe9-6767-4894-92dc-c2b6c28e9078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\CR">
+      <UniqueIdentifier>{d7d837c1-b6dd-447f-8d9e-39a9f736032e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -38,6 +44,12 @@
     </ClCompile>
     <ClCompile Include="GLRearTireView.cpp">
       <Filter>ソース ファイル\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="CRSignal.cpp">
+      <Filter>ソース ファイル\CR</Filter>
+    </ClCompile>
+    <ClCompile Include="CRAutomaton.cpp">
+      <Filter>ソース ファイル\CR</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -73,6 +85,12 @@
     </ClInclude>
     <ClInclude Include="Logger.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="CRSignal.h">
+      <Filter>ヘッダー ファイル\CR</Filter>
+    </ClInclude>
+    <ClInclude Include="CRAutomaton.h">
+      <Filter>ヘッダー ファイル\CR</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

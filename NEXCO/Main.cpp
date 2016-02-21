@@ -1,11 +1,11 @@
 #include "Common.h"
 #include "XIQCamera.h"
 #include "GLWindow.h"
+#include "CRSignal.h"
 
-using namespace std;
-
-ThreadData* threadData;
-GLWindow* glWindow;
+ThreadData* volatile threadData;
+GLWindow* volatile glWindow;
+CRSignal* volatile crSignal;
 
 float frameRate;
 int imageWidth;
@@ -17,7 +17,7 @@ bool method;
 int bufferSize;
 
 template <typename Target, typename Source>
-Target lexical_cast(const Source &arg) {
+Target lexical_cast(const Source& arg) {
     std::stringstream ss;
     Target result;
     ss << arg;
@@ -62,7 +62,7 @@ void initialize() {
     fin.close();
 }
 
-void threadCamera(ThreadData* threadData, GLWindow* glWindow) {
+void threadCamera() {
     LOG("Start");
 
 	XI_IMG image;
@@ -78,16 +78,13 @@ void threadCamera(ThreadData* threadData, GLWindow* glWindow) {
 	xiOpenDevice(0, &xiH);
 
 	int exposure = (int)(1000000.0 / XI_FRAMERATE);
-	//xiSetParamInt(xiH, XI_PRM_TRG_SOURCE, XI_TRG_OFF);						// for trigger mode
 	xiSetParamInt(xiH, XI_PRM_EXPOSURE, exposure);
 	xiGetParamFloat(xiH, XI_PRM_FRAMERATE XI_PRM_INFO_MAX, &maxFps);
     LOG("Max framerate : %f [fps]", maxFps);
     LOG("Exposure time : %d [us]", exposure);
 
-	xiSetParamInt(xiH, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);	// if you use the trigger mode, you have to change the acquisition timing mode
+	xiSetParamInt(xiH, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);
 	xiSetParamFloat(xiH, XI_PRM_FRAMERATE, XI_FRAMERATE);
-	//xiSetParamInt(xiH, XI_PRM_GPO_SELECTOR, 1);								// for trigger mode
-	//xiSetParamInt(xiH, XI_PRM_GPO_MODE, XI_GPO_EXPOSURE_PULSE);				// for trigger mode
 	xiSetParamInt(xiH, XI_PRM_IMAGE_DATA_FORMAT, XI_RGB24);
 
 	xiStartAcquisition(xiH);
@@ -100,6 +97,7 @@ void threadCamera(ThreadData* threadData, GLWindow* glWindow) {
         xiGetImage(xiH, 5000, &image);
 		memcpy(capture->imageData, image.bp, IMAGE_WIDTH * IMAGE_HEIGHT * 3);
         threadData->setBuffer(capture);
+        _CrtDumpMemoryLeaks();
 	}
 
     threadData->startCapture = false;
@@ -107,7 +105,7 @@ void threadCamera(ThreadData* threadData, GLWindow* glWindow) {
 	xiCloseDevice(xiH);
 }
 
-void threadOpenGL(ThreadData* threadData, GLWindow* glWindow) {
+void threadOpenGL() {
     LOG("Waiting until camera is ready to capture");
     while (!threadData->startCapture);
     LOG("Start");
@@ -115,7 +113,7 @@ void threadOpenGL(ThreadData* threadData, GLWindow* glWindow) {
     glWindow->showWindow();
 }
 
-void threadTracking(ThreadData* threadData, GLWindow* glWindow) {
+void threadTracking() {
     LOG("Waiting until camera is ready to capture");
     while (!threadData->startCapture);
     LOG("Start");
@@ -131,7 +129,6 @@ void threadTracking(ThreadData* threadData, GLWindow* glWindow) {
     IplImage* optimal = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
 
     int idxTire = 0;
-    int numTire = 2;
 
     int currentFrame = 0;
     int baseFrame = 0;
@@ -143,37 +140,43 @@ void threadTracking(ThreadData* threadData, GLWindow* glWindow) {
     chrono::system_clock::time_point now;
     time_t nowtime;
 
+    using namespace std::placeholders;
+
+    auto cvXorWithoutMask = [](const CvArr *a, const CvArr *b, CvArr *c) {
+        cvXor(a, b, c);
+    };
+    auto diffMethod = std::bind((method ? cvAbsDiff : cvXorWithoutMask), _1, _2, _3);
+    
     while (true) {
-        state = threadData->state->getState();
-        if (state == States::TIRE_IN) {
+        state = crSignal->getState();
+        currentFrame = threadData->lastSetFrame;
+        switch (state) {
+        case States::TIRE_IN:
             if (beforeState != state) {
-                currentFrame = threadData->lastSetFrame;
+                baseFrame = currentFrame;
+                
                 cvCopy(threadData->getBuffer(), base);
                 cvCvtColor(base, baseGray, CV_RGB2GRAY);
 
                 if (DEBUG) {
-                    string type = (idxTire == 0 ? "front" : "rear");
+                    string type = (idxTire % 2 == 0 ? "front" : "rear");
                     LOG("Start tire recognization : %s", type.c_str());
                     LOG("Base frame %d", currentFrame);
                     now = chrono::system_clock::now();
                     nowtime = chrono::system_clock::to_time_t(now);
-                    debugPath = "./log/" + lexical_cast<string, time_t>(nowtime) + type;
+                    debugPath = "./log/" + lexical_cast<string, time_t>(nowtime)+type;
                     _mkdir(debugPath.c_str());
                     string filename = debugPath + "/" + lexical_cast<string, int>(currentFrame)+".bmp";
                     cvSaveImage(filename.c_str(), base);
                 }
-            } 
+            }
             else {
-                currentFrame = threadData->lastSetFrame;
                 endFrame = currentFrame;
                 cvCopy(threadData->getBuffer(), curr);
                 cvCvtColor(curr, currGray, CV_RGB2GRAY);
-                if (method) {
-                    cvAbsDiff(baseGray, currGray, diff);
-                }
-                else {
-                    cvXor(baseGray, currGray, diff);
-                }
+
+                diffMethod(baseGray, currGray, diff);
+
                 CvScalar sum = cvSum(diff);
                 if (sum.val[0] > max) {
                     max = sum.val[0];
@@ -185,10 +188,9 @@ void threadTracking(ThreadData* threadData, GLWindow* glWindow) {
                     cvSaveImage(filename.c_str(), curr);
                 }
             }
-        }
-        else if (state == States::TIRE_OUT) {
+            break;
+        case States::TIRE_OUT:
             if (beforeState != state) {
-                threadData->lastSetFrame;
                 if (idxTire == 0) {
                     glWindow->setFrontTireImage(optimal);
                 }
@@ -196,11 +198,10 @@ void threadTracking(ThreadData* threadData, GLWindow* glWindow) {
                     glWindow->setRearTireImage(optimal);
                 }
 
-                idxTire = (idxTire + 1) % numTire;
                 max = 0;
 
                 if (DEBUG) {
-                    string type = (idxTire == 0 ? "front" : "rear");
+                    string type = (idxTire % 2 == 0 ? "front" : "rear");
                     LOG("End tire recognization : %s", type.c_str());
                     LOG("End frame %d", endFrame);
                     LOG("Optimal frame %d", optimalFrame);
@@ -214,87 +215,41 @@ void threadTracking(ThreadData* threadData, GLWindow* glWindow) {
                     filename = debugPath + "/optimal.bmp";
                     cvSaveImage(filename.c_str(), optimal);
                 }
+
+                idxTire++;
             }
+            break;
         }
         beforeState = state;
     }
     cvReleaseImage(&base);
 }
 
-void threadSignal(ThreadData *threadData) {
+void threadSignal() {
     LOG("Waiting until camera is ready to capture");
     while (!threadData->startCapture);
     LOG("Start");
 
-    WSADATA wsa;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
-        LOG("WSAStartup failed");
-        exit(-1);
-    }
-
-    SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == INVALID_SOCKET) {
-        LOG("Invalid Socket. Error code : %d", WSAGetLastError());
-        exit(-1);
-    }
-
-    sockaddr_in address;
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = inet_addr(serverHost.c_str());
-    address.sin_port = htons(serverPort);
-
-    auto connection = [&sock](sockaddr_in &address) {
-        LOG("Connecting");
-        while (connect(sock, (sockaddr*)&address, sizeof(address)) != 0);
-        LOG("Connection estabilished");
-    };
-
-    connection(address);
-
-    int res;
-    char buf[2] = "\0";
-    while (true) {
-        res = recv(sock, buf, 2, 0);
-        if (res > 0) {
-            if (strlen(buf) > 0) {
-                threadData->state->transit(buf[0]);
-            }
-        }
-        else if (res == 0) {
-            LOG("Connection closed. reconnect");
-            connection(address);
-            break;
-        }
-        else {
-            int err = WSAGetLastError();
-            LOG("Receive failed: Error code : %d", err);
-            switch (err) {
-            case WSAENOTCONN:
-                connection(address);
-                break;
-            default:
-                exit(-1);
-            }
-            break;
-        }
-    }
+    crSignal->listen();
 }
 
 int main(int argc, char** argv) {
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
     initialize();
 
     threadData = new ThreadData(bufferSize);
     glWindow = new GLWindow(argc, argv, threadData);
+    crSignal = new CRSignal();
 
     vector<thread> threads;
-    threads.push_back(thread(threadCamera, threadData, glWindow));
-    threads.push_back(thread(threadOpenGL, threadData, glWindow));
-    threads.push_back(thread(threadTracking, threadData, glWindow));
-    threads.push_back(thread(threadSignal, threadData));
+    threads.push_back(thread(threadCamera));
+    threads.push_back(thread(threadOpenGL));
+    threads.push_back(thread(threadTracking));
+    threads.push_back(thread(threadSignal));
 
     for (auto &thread : threads) {
 		thread.join();
-		cout << "thread ok";
 	}
 
     delete glWindow;
