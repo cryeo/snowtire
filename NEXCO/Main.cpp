@@ -16,61 +16,31 @@ namespace Global {
     CRSignal* volatile crSignal;
     CRTracking* volatile crTracking;
     CRCamera* volatile crCamera;
+    CRConfig* volatile crConfig;
 }
 
 void loadConfig() {
     LOG("Start");
-
-    std::ifstream fin("config.txt");
-    std::string name, value;
-    while (!fin.eof()) {
-        fin >> name >> value;
-        if (name == "framerate") {
-            frameRate = lexical_cast<float>(value);
-        }
-        else if (name == "host") {
-            serverHost = value;
-        }
-        else if (name == "port") {
-            serverPort = lexical_cast<int>(value);
-        }
-        else if (name == "buffer") {
-            bufferSize = lexical_cast<int>(value);
-        }
-        else if (name == "debug") {
-            if (value == "true") {
-                debug = true;
-            }
-            else if (value == "false") {
-                debug = false;
-            }
-        }
-        else if (name == "method") {
-            if (value == "diff") {
-                method = true;
-            }
-            else if (value == "xor") {
-                method = false;
-            }
-        }
-    }
-    fin.close();
-
+    Global::crConfig = new CRConfig("config.yaml");
     LOG("End");
 }
 
 void initialize(int argc, char** argv) {
     LOG("Start");
 
-    Global::cameraBuffer = new CameraBuffer(bufferSize);
+    auto getTrackingMethod = [](std::string method) -> std::function<void(const CvArr *, const CvArr *, CvArr *)> {
+        if (method == "xor") return static_cast<void(&)(const CvArr *, const CvArr *, CvArr *)>(cvXor);
+        return cvAbsDiff;
+    };
+
+    Global::cameraBuffer = new CameraBuffer(Global::crConfig->bufferSize);
     Global::glWindow = new GLWindow(argc, argv);
     Global::crSignal = new CRSignal();
-    Global::crTracking = new CRTracking(cvAbsDiff);
+
+    Global::crTracking = new CRTracking(getTrackingMethod(Global::crConfig->method));
+
     Global::crCamera = new CRCamera();
 
-    auto cvXorWithoutMask = [](const CvArr *src1, const CvArr *src2, CvArr *dst) {
-        cvXor(src1, src2, dst);
-    };
 
     Global::crCamera->initialize();
     Global::crCamera->startAcquisition();
@@ -125,6 +95,7 @@ int main(int argc, char** argv) {
 	}
 
     delete Global::glWindow;
+    delete Global::crConfig;
     delete Global::cameraBuffer;
     delete Global::crSignal;
     delete Global::crTracking;

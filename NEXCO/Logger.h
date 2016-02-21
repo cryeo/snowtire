@@ -1,7 +1,6 @@
 #pragma once
 
-#define DEBUG (true)
-#define LOG(...) (DEBUG ? Logger::log(__FUNCTION__, __VA_ARGS__) : Logger::log())
+#define LOG(...) Logger::log(__FUNCTION__, __VA_ARGS__)
 
 namespace Logger {
     template<typename T, typename... Args>

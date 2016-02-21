@@ -57,6 +57,9 @@
     <ClCompile Include="CRCamera.cpp">
       <Filter>ソース ファイル\CR</Filter>
     </ClCompile>
+    <ClCompile Include="CRConfig.cpp">
+      <Filter>ソース ファイル\CR</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GLCameraView.h">
@@ -107,9 +110,15 @@
     <ClInclude Include="Global.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="CRConfig.h">
+      <Filter>ヘッダー ファイル\CR</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="config.txt">
+    <Text Include="config.yaml">
       <Filter>リソース ファイル</Filter>
     </Text>
   </ItemGroup>

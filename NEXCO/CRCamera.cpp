@@ -1,4 +1,5 @@
 #include "CRCamera.h"
+#include "Global.h"
 
 void CRCamera::initialize() {
     DWORD dwNumberOfDevices = 0;
@@ -11,7 +12,7 @@ void CRCamera::initialize() {
 
     xiOpenDevice(0, &this->xiH);
 
-    int exposure = (int)(1000000.0 / XI_FRAMERATE);
+    int exposure = (int)(1000000.0 / Global::crConfig->frameRate);
 
     xiSetParamInt(this->xiH, XI_PRM_EXPOSURE, exposure);
     xiGetParamFloat(this->xiH, XI_PRM_FRAMERATE XI_PRM_INFO_MAX, &maxFps);
@@ -20,6 +21,6 @@ void CRCamera::initialize() {
     LOG("Exposure time : %d [us]", exposure);
 
     xiSetParamInt(this->xiH, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);
-    xiSetParamFloat(this->xiH, XI_PRM_FRAMERATE, XI_FRAMERATE);
+    xiSetParamFloat(this->xiH, XI_PRM_FRAMERATE, Global::crConfig->frameRate);
     xiSetParamInt(this->xiH, XI_PRM_IMAGE_DATA_FORMAT, XI_RGB24);
 }

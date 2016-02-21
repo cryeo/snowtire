@@ -1,5 +1,21 @@
 #include "CRTracking.h"
 #include "Global.h"
+#include "Timer.h"
+#include <direct.h>
+
+auto makeLogPath = [](std::string time, std::string type) {
+    std::stringstream ss;
+    ss << "./log/" << time << type;
+    return ss.str();
+};
+
+
+template<typename T>
+std::string makeFileName(std::string base, T name, std::string ext) {
+    std::stringstream ss;
+    ss << base << "/" << name << "." << ext;
+    return ss.str();
+}
 
 void CRTracking::trace() {
     int state = 0, beforeState = 0;
@@ -9,14 +25,13 @@ void CRTracking::trace() {
     int idxTire = 0;
 
     int currentFrame = 0;
-    int baseFrame = 0;
+    int startFrame = 0;
     int optimalFrame = 0;
     int endFrame = 0;
 
     int numCase = 0;
-    std::string debugPath;
-    std::chrono::system_clock::time_point now;
-    time_t nowtime;
+
+    std::string logPath;
 
     while (true) {
         state = Global::crSignal->getState();
@@ -25,21 +40,19 @@ void CRTracking::trace() {
         switch (state) {
         case States::TIRE_IN:
             if (beforeState != state) {
-                baseFrame = currentFrame;
+                startFrame = currentFrame;
 
                 cvCopy(Global::cameraBuffer->getBuffer(), base);
                 cvCvtColor(base, baseGray, CV_RGB2GRAY);
 
-                if (DEBUG) {
+                if (Global::crConfig->debug) {
                     std::string type = (idxTire % 2 == 0 ? "front" : "rear");
                     LOG("Start tire recognization : %s", type.c_str());
                     LOG("Base frame %d", currentFrame);
-                    now = std::chrono::system_clock::now();
-                    nowtime = std::chrono::system_clock::to_time_t(now);
-                    debugPath = "./log/" + lexical_cast<std::string, time_t>(nowtime)+type;
-                    _mkdir(debugPath.c_str());
-                    std::string filename = debugPath + "/" + lexical_cast<std::string, int>(currentFrame)+".bmp";
-                    cvSaveImage(filename.c_str(), base);
+
+                    logPath = makeLogPath(Timer::now(), type);
+                    _mkdir(logPath.c_str());
+                    cvSaveImage(makeFileName(logPath, currentFrame, ".bmp").c_str(), base);
                 }
             }
             else {
@@ -55,9 +68,9 @@ void CRTracking::trace() {
                     cvCopy(curr, optimal);
                     optimalFrame = currentFrame;
                 }
-                if (DEBUG) {
-                    std::string filename = debugPath + "/" + lexical_cast<std::string, int>(currentFrame)+".bmp";
-                    cvSaveImage(filename.c_str(), curr);
+
+                if (Global::crConfig->debug) {
+                    cvSaveImage(makeFileName(logPath, currentFrame, ".bmp").c_str(), curr);
                 }
             }
             break;
@@ -73,20 +86,18 @@ void CRTracking::trace() {
 
                 max = 0;
 
-                if (DEBUG) {
+                if (Global::crConfig->debug) {
                     std::string type = (idxTire % 2 == 0 ? "front" : "rear");
                     LOG("End tire recognization : %s", type.c_str());
                     LOG("End frame %d", endFrame);
                     LOG("Optimal frame %d", optimalFrame);
-                    std::string filename = debugPath + "/info.txt";
-                    std::ofstream fout(filename.c_str());
-                    fout << "method : " << (method ? "diff" : "xor") << std::endl;
-                    fout << "start frame : " << baseFrame << std::endl;
+                    std::ofstream fout(makeFileName(logPath, "info", "txt").c_str());
+                    fout << "method : " << Global::crConfig->method << std::endl;
+                    fout << "start frame : " << startFrame << std::endl;
                     fout << "end frame : " << endFrame << std::endl;
                     fout << "optimal frame : " << optimalFrame << std::endl;
                     fout.close();
-                    filename = debugPath + "/optimal.bmp";
-                    cvSaveImage(filename.c_str(), optimal);
+                    cvSaveImage(makeFileName(logPath, "optimal", ".bmp").c_str(), optimal);
                 }
 
                 idxTire++;

@@ -100,7 +100,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\XIMEA\API;C:\opencv2411\build\include;C:\opencv2411\build\include\opencv;C:\freeglut\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\XIMEA\API;C:\opencv2411\build\include;C:\opencv2411\build\include\opencv;C:\freeglut\include;C:\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -140,7 +140,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\XIMEA\API;C:\opencv2411\build\include;C:\opencv2411\build\include\opencv;C:\freeglut\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\XIMEA\API;C:\opencv2411\build\include;C:\opencv2411\build\include\opencv;C:\freeglut\include;C:\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -154,6 +154,7 @@
   <ItemGroup>
     <ClCompile Include="CRAutomaton.cpp" />
     <ClCompile Include="CRCamera.cpp" />
+    <ClCompile Include="CRConfig.cpp" />
     <ClCompile Include="CRSignal.cpp" />
     <ClCompile Include="CRTracking.cpp" />
     <ClCompile Include="GLCameraView.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="CRAutomaton.h" />
     <ClInclude Include="CRCamera.h" />
+    <ClInclude Include="CRConfig.h" />
     <ClInclude Include="CRSignal.h" />
     <ClInclude Include="CRTracking.h" />
     <ClInclude Include="GLCameraView.h" />
@@ -180,9 +182,10 @@
     <ClInclude Include="Logger.h" />
     <ClInclude Include="OpenCV.h" />
     <ClInclude Include="Socket.h" />
+    <ClInclude Include="Timer.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="config.txt" />
+    <Text Include="config.yaml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

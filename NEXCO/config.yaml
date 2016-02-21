@@ -1,0 +1,12 @@
+camera:
+  width: 640
+  height: 480
+  frame_rate: 500
+  buffer_size: 1000
+socket:
+  type: keyboard
+  host: 133.11.191.233
+  port: 6307
+tracking:
+  method: diff
+debug: true

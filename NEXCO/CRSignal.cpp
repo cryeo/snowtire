@@ -1,7 +1,11 @@
 #include "CRSignal.h"
+#include "Global.h"
 
 void CRSignal::listen() {
-    this->listenFromKeyboard();
+    if (Global::crConfig->type == "pi")
+        this->listenFromRaspberryPi();
+    else
+        this->listenFromKeyboard();
 }
 
 void CRSignal::listenFromKeyboard() {
@@ -26,8 +30,8 @@ void CRSignal::listenFromRaspberryPi() {
 
     sockaddr_in address;
     address.sin_family = AF_INET;
-    address.sin_addr.s_addr = inet_addr(serverHost.c_str());
-    address.sin_port = htons(serverPort);
+    address.sin_addr.s_addr = inet_addr(Global::crConfig->host.c_str());
+    address.sin_port = htons(Global::crConfig->port);
 
     auto connection = [&sock](sockaddr_in &address) {
         LOG("Connecting");

@@ -69,3 +69,7 @@
     #pragma comment(lib, CV_PATH "opencv_videostab"     CV_VERSION_STR  CV_EXT_STR)
     #pragma comment(lib, CV_PATH "zlib"	                                CV_EXT_STR)
 #endif
+
+inline void cvXor(const CvArr *src1, const CvArr *src2, CvArr *dst) {
+    cvXor(src1, src2, dst, (const CvArr*)0);
+}

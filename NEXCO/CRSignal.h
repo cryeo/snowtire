@@ -1,7 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "CRAutomaton.h"
-#include "Winsock.h"
+#include "Socket.h"
 
 class CRSignal {
 public:
