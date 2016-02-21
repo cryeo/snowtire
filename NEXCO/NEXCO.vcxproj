@@ -164,6 +164,7 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CameraBuffer.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="CRAutomaton.h" />
     <ClInclude Include="CRCamera.h" />
@@ -172,6 +173,7 @@
     <ClInclude Include="GLCameraView.h" />
     <ClInclude Include="GLCommon.h" />
     <ClInclude Include="GLFrontTireView.h" />
+    <ClInclude Include="Global.h" />
     <ClInclude Include="GLRearTireView.h" />
     <ClInclude Include="GLView.h" />
     <ClInclude Include="GLWindow.h" />

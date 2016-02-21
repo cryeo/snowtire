@@ -1,11 +1,9 @@
 #pragma once
 #include "Common.h"
-#include "CRSignal.h"
-#include "GLWindow.h"
 
 class CRTracking {
 public:
-    CRTracking(std::function<void(const CvArr*, const CvArr*, CvArr*)> _diffMethod, CameraBuffer* _cameraBuffer, CRSignal* _crSignal, GLWindow* _glWindow) : cameraBuffer(_cameraBuffer), crSignal(_crSignal), glWindow(_glWindow) {
+    CRTracking(std::function<void(const CvArr*, const CvArr*, CvArr*)> _diffMethod) {
         this->base = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
         this->baseGray = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 1);
         this->curr = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
@@ -37,8 +35,4 @@ private:
     IplImage* optimal;
 
     std::function<void(const CvArr*, const CvArr*, CvArr*)> diffMethod;
-
-    CameraBuffer* cameraBuffer;
-    CRSignal* crSignal;
-    GLWindow* glWindow;
 };

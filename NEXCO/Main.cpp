@@ -1,14 +1,5 @@
 #include "Common.h"
-#include "GLWindow.h"
-#include "CRSignal.h"
-#include "CRTracking.h"
-#include "CRCamera.h"
-
-CameraBuffer* volatile cameraBuffer;
-GLWindow* volatile glWindow;
-CRSignal* volatile crSignal;
-CRTracking* volatile crTracking;
-CRCamera* volatile crCamera;
+#include "Global.h"
 
 float frameRate;
 int imageWidth;
@@ -18,6 +9,14 @@ int serverPort;
 bool debug;
 bool method;
 int bufferSize;
+
+namespace Global {
+    CameraBuffer* volatile cameraBuffer;
+    GLWindow* volatile glWindow;
+    CRSignal* volatile crSignal;
+    CRTracking* volatile crTracking;
+    CRCamera* volatile crCamera;
+}
 
 void loadConfig() {
     LOG("Start");
@@ -63,18 +62,18 @@ void loadConfig() {
 void initialize(int argc, char** argv) {
     LOG("Start");
 
-    cameraBuffer = new CameraBuffer(bufferSize);
-    glWindow = new GLWindow(argc, argv, cameraBuffer);
-    crSignal = new CRSignal();
-    crTracking = new CRTracking(cvAbsDiff, cameraBuffer, crSignal, glWindow);
-    crCamera = new CRCamera();
+    Global::cameraBuffer = new CameraBuffer(bufferSize);
+    Global::glWindow = new GLWindow(argc, argv);
+    Global::crSignal = new CRSignal();
+    Global::crTracking = new CRTracking(cvAbsDiff);
+    Global::crCamera = new CRCamera();
 
     auto cvXorWithoutMask = [](const CvArr *src1, const CvArr *src2, CvArr *dst) {
         cvXor(src1, src2, dst);
     };
 
-    crCamera->initialize();
-    crCamera->startAcquisition();
+    Global::crCamera->initialize();
+    Global::crCamera->startAcquisition();
 
     LOG("End");
 }
@@ -84,30 +83,30 @@ void threadCamera() {
     XI_IMG capturedImage;
     IplImage* image = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
     while (true) {
-        crCamera->capture(capturedImage);
+        Global::crCamera->capture(capturedImage);
         memcpy(image->imageData, capturedImage.bp, IMAGE_WIDTH * IMAGE_HEIGHT * 3);
-        cameraBuffer->setBuffer(image);
+        Global::cameraBuffer->setBuffer(image);
     }
     cvReleaseImage(&image);
-    crCamera->stopAcquisition();
+    Global::crCamera->stopAcquisition();
     LOG("End");
 }
 
 void threadOpenGL() {
     LOG("Start");
-    glWindow->showWindow();
+    Global::glWindow->showWindow();
     LOG("End");
 }
 
 void threadTracking() {
     LOG("Start");
-    crTracking->trace();
+    Global::crTracking->trace();
     LOG("End");
 }
 
 void threadSignal() {
     LOG("Start");
-    crSignal->listen();
+    Global::crSignal->listen();
     LOG("End");
 }
 
@@ -125,11 +124,11 @@ int main(int argc, char** argv) {
 		thread.join();
 	}
 
-    delete glWindow;
-    delete cameraBuffer;
-    delete crSignal;
-    delete crTracking;
-    delete crCamera;
+    delete Global::glWindow;
+    delete Global::cameraBuffer;
+    delete Global::crSignal;
+    delete Global::crTracking;
+    delete Global::crCamera;
 
 	return 0;
 }

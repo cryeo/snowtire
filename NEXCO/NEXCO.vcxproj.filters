@@ -101,6 +101,12 @@
     <ClInclude Include="CRCamera.h">
       <Filter>ヘッダー ファイル\CR</Filter>
     </ClInclude>
+    <ClInclude Include="CameraBuffer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Global.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="config.txt">

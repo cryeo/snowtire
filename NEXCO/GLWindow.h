@@ -8,7 +8,7 @@
 
 class GLWindow {
 public:
-	GLWindow(int argc, char** argv, CameraBuffer* _cameraBuffer);
+	GLWindow(int argc, char** argv);
     virtual ~GLWindow();
 
 	void showWindow();
@@ -16,7 +16,6 @@ public:
     void setRearTireImage(IplImage* _image);
 
 private:
-    CameraBuffer* cameraBuffer;
     GLCameraView* glCameraView;
     GLFrontTireView* glFrontTireView;
     GLRearTireView* glRearTireView;

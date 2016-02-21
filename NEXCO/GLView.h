@@ -26,10 +26,6 @@ public:
         this->currentInstance = static_cast<T*>(this);
     }
 
-    void setCameraBuffer(CameraBuffer* _cameraBuffer) {
-        this->cameraBuffer = _cameraBuffer;
-    }
-
     void timer(int value) {
         glutSetWindow(this->windowId);
         glutPostRedisplay();
@@ -63,5 +59,4 @@ protected:
 	std::string title;
 	GLuint windowId;
 	IplImage* image;
-    CameraBuffer* cameraBuffer;
 };

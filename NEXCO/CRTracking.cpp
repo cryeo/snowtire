@@ -1,4 +1,5 @@
 #include "CRTracking.h"
+#include "Global.h"
 
 void CRTracking::trace() {
     int state = 0, beforeState = 0;
@@ -18,15 +19,15 @@ void CRTracking::trace() {
     time_t nowtime;
 
     while (true) {
-        state = this->crSignal->getState();
-        currentFrame = this->cameraBuffer->lastSetFrame;
+        state = Global::crSignal->getState();
+        currentFrame = Global::cameraBuffer->lastSetFrame;
 
         switch (state) {
         case States::TIRE_IN:
             if (beforeState != state) {
                 baseFrame = currentFrame;
 
-                cvCopy(this->cameraBuffer->getBuffer(), base);
+                cvCopy(Global::cameraBuffer->getBuffer(), base);
                 cvCvtColor(base, baseGray, CV_RGB2GRAY);
 
                 if (DEBUG) {
@@ -43,7 +44,7 @@ void CRTracking::trace() {
             }
             else {
                 endFrame = currentFrame;
-                cvCopy(this->cameraBuffer->getBuffer(), curr);
+                cvCopy(Global::cameraBuffer->getBuffer(), curr);
                 cvCvtColor(curr, currGray, CV_RGB2GRAY);
 
                 diffMethod(baseGray, currGray, diff);
@@ -64,10 +65,10 @@ void CRTracking::trace() {
         case States::TIRE_OUT:
             if (beforeState != state) {
                 if (idxTire == 0) {
-                    this->glWindow->setFrontTireImage(optimal);
+                    Global::glWindow->setFrontTireImage(optimal);
                 }
                 else {
-                    this->glWindow->setRearTireImage(optimal);
+                    Global::glWindow->setRearTireImage(optimal);
                 }
 
                 max = 0;

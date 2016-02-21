@@ -1,4 +1,5 @@
 #include "GLCameraView.h"
+#include "Global.h"
 
 void GLCameraView::initialize() {
     GLView<GLCameraView>::initialize();
@@ -12,7 +13,7 @@ void GLCameraView::initialize() {
 }
 
 void GLCameraView::display() {
-    this->setImage(this->cameraBuffer->getBuffer());
+    this->setImage(Global::cameraBuffer->getBuffer());
 
     glTexSubImage2D(GL_TEXTURE_2D,
         0,
