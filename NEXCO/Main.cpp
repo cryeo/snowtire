@@ -2,10 +2,12 @@
 #include "XIQCamera.h"
 #include "GLWindow.h"
 #include "CRSignal.h"
+#include "CRTracking.h"
 
 ThreadData* volatile threadData;
 GLWindow* volatile glWindow;
 CRSignal* volatile crSignal;
+CRTracking* volatile crTracking;
 
 float frameRate;
 int imageWidth;
@@ -15,15 +17,6 @@ int serverPort;
 bool debug;
 bool method;
 int bufferSize;
-
-template <typename Target, typename Source>
-Target lexical_cast(const Source& arg) {
-    std::stringstream ss;
-    Target result;
-    ss << arg;
-    ss >> result;
-    return result;
-}
 
 void initialize() {
     ifstream fin("config.txt");
@@ -118,111 +111,7 @@ void threadTracking() {
     while (!threadData->startCapture);
     LOG("Start");
 
-    int state = 0, beforeState = 0;
-    IplImage* base = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
-    IplImage* baseGray = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 1);
-    IplImage* curr = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
-    IplImage* currGray = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 1);
-    IplImage* diff = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 1);
-    
-    double max = 0;
-    IplImage* optimal = cvCreateImage(cvSize(IMAGE_WIDTH, IMAGE_HEIGHT), IPL_DEPTH_8U, 3);
-
-    int idxTire = 0;
-
-    int currentFrame = 0;
-    int baseFrame = 0;
-    int optimalFrame = 0;
-    int endFrame = 0;
-    
-    int numCase = 0;
-    string debugPath;
-    chrono::system_clock::time_point now;
-    time_t nowtime;
-
-    using namespace std::placeholders;
-
-    auto cvXorWithoutMask = [](const CvArr *a, const CvArr *b, CvArr *c) {
-        cvXor(a, b, c);
-    };
-    auto diffMethod = std::bind((method ? cvAbsDiff : cvXorWithoutMask), _1, _2, _3);
-    
-    while (true) {
-        state = crSignal->getState();
-        currentFrame = threadData->lastSetFrame;
-        switch (state) {
-        case States::TIRE_IN:
-            if (beforeState != state) {
-                baseFrame = currentFrame;
-                
-                cvCopy(threadData->getBuffer(), base);
-                cvCvtColor(base, baseGray, CV_RGB2GRAY);
-
-                if (DEBUG) {
-                    string type = (idxTire % 2 == 0 ? "front" : "rear");
-                    LOG("Start tire recognization : %s", type.c_str());
-                    LOG("Base frame %d", currentFrame);
-                    now = chrono::system_clock::now();
-                    nowtime = chrono::system_clock::to_time_t(now);
-                    debugPath = "./log/" + lexical_cast<string, time_t>(nowtime)+type;
-                    _mkdir(debugPath.c_str());
-                    string filename = debugPath + "/" + lexical_cast<string, int>(currentFrame)+".bmp";
-                    cvSaveImage(filename.c_str(), base);
-                }
-            }
-            else {
-                endFrame = currentFrame;
-                cvCopy(threadData->getBuffer(), curr);
-                cvCvtColor(curr, currGray, CV_RGB2GRAY);
-
-                diffMethod(baseGray, currGray, diff);
-
-                CvScalar sum = cvSum(diff);
-                if (sum.val[0] > max) {
-                    max = sum.val[0];
-                    cvCopy(curr, optimal);
-                    optimalFrame = currentFrame;
-                }
-                if (DEBUG) {
-                    string filename = debugPath + "/" + lexical_cast<string, int>(currentFrame)+".bmp";
-                    cvSaveImage(filename.c_str(), curr);
-                }
-            }
-            break;
-        case States::TIRE_OUT:
-            if (beforeState != state) {
-                if (idxTire == 0) {
-                    glWindow->setFrontTireImage(optimal);
-                }
-                else {
-                    glWindow->setRearTireImage(optimal);
-                }
-
-                max = 0;
-
-                if (DEBUG) {
-                    string type = (idxTire % 2 == 0 ? "front" : "rear");
-                    LOG("End tire recognization : %s", type.c_str());
-                    LOG("End frame %d", endFrame);
-                    LOG("Optimal frame %d", optimalFrame);
-                    string filename = debugPath + "/info.txt";
-                    ofstream fout(filename.c_str());
-                    fout << "method : " << (method ? "diff" : "xor") << endl;
-                    fout << "start frame : " << baseFrame << endl;
-                    fout << "end frame : " << endFrame << endl;
-                    fout << "optimal frame : " << optimalFrame << endl;
-                    fout.close();
-                    filename = debugPath + "/optimal.bmp";
-                    cvSaveImage(filename.c_str(), optimal);
-                }
-
-                idxTire++;
-            }
-            break;
-        }
-        beforeState = state;
-    }
-    cvReleaseImage(&base);
+    crTracking->trace();
 }
 
 void threadSignal() {
@@ -241,6 +130,12 @@ int main(int argc, char** argv) {
     threadData = new ThreadData(bufferSize);
     glWindow = new GLWindow(argc, argv, threadData);
     crSignal = new CRSignal();
+    crTracking = new CRTracking(cvAbsDiff, threadData, crSignal, glWindow);
+
+    auto cvXorWithoutMask = [](const CvArr *src1, const CvArr *src2, CvArr *dst) {
+        cvXor(src1, src2, dst);
+    };
+
 
     vector<thread> threads;
     threads.push_back(thread(threadCamera));

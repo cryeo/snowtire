@@ -51,6 +51,9 @@
     <ClCompile Include="CRAutomaton.cpp">
       <Filter>ソース ファイル\CR</Filter>
     </ClCompile>
+    <ClCompile Include="CRTracking.cpp">
+      <Filter>ソース ファイル\CR</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GLCameraView.h">
@@ -90,6 +93,9 @@
       <Filter>ヘッダー ファイル\CR</Filter>
     </ClInclude>
     <ClInclude Include="CRAutomaton.h">
+      <Filter>ヘッダー ファイル\CR</Filter>
+    </ClInclude>
+    <ClInclude Include="CRTracking.h">
       <Filter>ヘッダー ファイル\CR</Filter>
     </ClInclude>
   </ItemGroup>

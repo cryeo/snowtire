@@ -21,7 +21,6 @@
 #include <conio.h>
 #include <direct.h>
 
-
 #include "OpenCV.h"
 #include "Socket.h"
 #include "Logger.h"
@@ -73,3 +72,12 @@ public:
     int lastSetFrame;
     bool startCapture;
 };
+
+template <typename Target, typename Source>
+Target lexical_cast(const Source& arg) {
+    std::stringstream ss;
+    Target result;
+    ss << arg;
+    ss >> result;
+    return result;
+}

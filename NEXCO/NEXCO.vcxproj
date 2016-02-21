@@ -154,6 +154,7 @@
   <ItemGroup>
     <ClCompile Include="CRAutomaton.cpp" />
     <ClCompile Include="CRSignal.cpp" />
+    <ClCompile Include="CRTracking.cpp" />
     <ClCompile Include="GLCameraView.cpp" />
     <ClCompile Include="GLFrontTireView.cpp" />
     <ClCompile Include="GLRearTireView.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="CRAutomaton.h" />
     <ClInclude Include="CRSignal.h" />
+    <ClInclude Include="CRTracking.h" />
     <ClInclude Include="GLCameraView.h" />
     <ClInclude Include="GLCommon.h" />
     <ClInclude Include="GLFrontTireView.h" />

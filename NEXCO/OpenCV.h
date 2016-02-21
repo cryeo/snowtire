@@ -25,11 +25,11 @@
 #include "opencv2/highgui/highgui.hpp"
 
 #if !defined(CV_IMPL)
-#define CV_IMPL extern "C"
+    #define CV_IMPL extern "C"
 #endif //CV_IMPL
 
 #if defined(__cplusplus)
-#include "opencv2/core/internal.hpp"
+    #include "opencv2/core/internal.hpp"
 #endif //__cplusplus
 
 #ifdef WIN32
