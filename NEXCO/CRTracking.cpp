@@ -1,4 +1,5 @@
 #include "CRTracking.h"
+#include "OpenCV.h"
 #include "Global.h"
 #include "Timer.h"
 #include <direct.h>
@@ -15,6 +16,208 @@ std::string makeFileName(std::string base, T name, std::string ext) {
     std::stringstream ss;
     ss << base << "/" << name << "." << ext;
     return ss.str();
+}
+
+IplImage* brightness(IplImage* src, int brightness) {
+    brightness = min(brightness, 100);
+    brightness = max(brightness, -100);
+
+    IplImage* ret = cvCloneImage(src);
+    IplImage* gray = cvCreateImage(cvGetSize(src), src->depth, 1);
+
+    if (src->nChannels == 3) cvCvtColor(src, gray, CV_RGB2GRAY);
+    else cvCopyImage(src, gray);
+
+    CvMat* lutMat = cvCreateMatHeader(1, 256, CV_8UC1);
+    uchar lut[256];
+    cvSetData(lutMat, lut, 0);
+
+    double b = (double)brightness;
+    for (int i = 0; i < 256; i++) {
+        int v = cvRound(i + b);
+        v = max(v, 0);
+        v = min(v, 255);
+        lut[i] = v;
+    }
+
+    if (src->nChannels == 3) {
+        IplImage* R = cvCreateImage(cvGetSize(src), src->depth, 1);
+        IplImage* G = cvCreateImage(cvGetSize(src), src->depth, 1);
+        IplImage* B = cvCreateImage(cvGetSize(src), src->depth, 1);
+        cvCvtPixToPlane(src, R, G, B, NULL);
+        cvLUT(R, R, lutMat);
+        cvLUT(G, G, lutMat);
+        cvLUT(B, B, lutMat);
+        cvCvtPlaneToPix(R, G, B, NULL, ret);
+        cvReleaseImage(&R);
+        cvReleaseImage(&G);
+        cvReleaseImage(&B);
+    }
+    else {
+        cvLUT(gray, ret, lutMat);
+    }
+
+    cvReleaseImage(&gray);
+    cvReleaseMat(&lutMat);
+
+    return ret;
+}
+
+IplImage* contrast(IplImage* src, int contrast) {
+    contrast = min(contrast, 100);
+    contrast = max(contrast, -100);
+
+    IplImage* ret = cvCloneImage(src);
+    IplImage* gray = cvCreateImage(cvGetSize(src), src->depth, 1);
+
+    if (src->nChannels == 3) cvCvtColor(src, gray, CV_RGB2GRAY);
+    else cvCopyImage(src, gray);
+
+    CvMat* lutMat = cvCreateMatHeader(1, 256, CV_8UC1);
+    uchar lut[256];
+    cvSetData(lutMat, lut, 0);
+
+    if (contrast > 0) {
+        double delta = 127. * contrast / 100;
+        double a = 255. / (255. - delta * 2);
+        double b = a * (-delta);
+        for (int i = 0; i < 256; i++) {
+            int v = cvRound(a * i + b);
+            v = max(v, 0);
+            v = min(v, 255);
+            lut[i] = v;
+        }
+    }
+    else {
+        double delta = -128. * contrast / 100;
+        double a = (256. - delta * 2) / 255.;
+        double b = delta;
+        for (int i = 0; i < 256; i++) {
+            int v = cvRound(a * i + b);
+            v = max(v, 0);
+            v = min(v, 255);
+            lut[i] = v;
+        }
+    }
+
+    if (src->nChannels == 3) {
+        IplImage* R = cvCreateImage(cvGetSize(src), src->depth, 1);
+        IplImage* G = cvCreateImage(cvGetSize(src), src->depth, 1);
+        IplImage* B = cvCreateImage(cvGetSize(src), src->depth, 1);
+        cvCvtPixToPlane(src, R, G, B, NULL);
+        cvLUT(R, R, lutMat);
+        cvLUT(G, G, lutMat);
+        cvLUT(B, B, lutMat);
+        cvCvtPlaneToPix(R, G, B, NULL, ret);
+        cvReleaseImage(&R);
+        cvReleaseImage(&G);
+        cvReleaseImage(&B);
+    }
+    else {
+        cvLUT(gray, ret, lutMat);
+    }
+
+    cvReleaseImage(&gray);
+    cvReleaseMat(&lutMat);
+
+    return ret;
+}
+
+/*
+IplImage* contrastStretch(IplImage* src) {
+    IplImage* ret = cvCloneImage(src);
+    IplImage* gray = cvCreateImage(cvGetSize(src), src->depth, 1);
+
+    if (src->nChannels == 3) cvCvtColor(src, gray, CV_RGB2GRAY);
+    else cvCopyImage(src, gray);
+
+    CvMat* lutMat = cvCreateMatHeader(1, 256, CV_8UC1);
+    uchar lut[256];
+    cvSetData(lutMat, lut, 0);
+
+    int width = src->width;
+    int height = src->height;
+
+    int ct = 0;
+
+    uchar minValue = 0;
+    uchar maxValue = 255;
+    for (int i = 0; i < src->height; i++) {
+        for (int j = 0; j < src->width; j++) {
+            minValue = min(minValue, (uchar)gray->imageData[j + i * src->widthStep]);
+            maxValue = max(maxValue, (uchar)gray->imageData[j + i * src->widthStep]);
+        }
+    }
+
+    for (int i = 0; i < 256; i++) {
+        if (i <= minValue) lut[i] = 0;
+        else if (i >= maxValue) lut[i] = 255;
+        else {
+            int k = 255 * (i - minValue) / (maxValue - minValue);
+            lut[i] = k;
+        }
+    }
+
+
+    if (src->nChannels == 3) {
+        IplImage* R = cvCreateImage(cvGetSize(src), src->depth, 1);
+        IplImage* G = cvCreateImage(cvGetSize(src), src->depth, 1);
+        IplImage* B = cvCreateImage(cvGetSize(src), src->depth, 1);
+        cvCvtPixToPlane(src, R, G, B, NULL);
+        cvLUT(R, R, lutMat);
+        cvLUT(G, G, lutMat);
+        cvLUT(B, B, lutMat);
+        cvCvtPlaneToPix(R, G, B, NULL, ret);
+        cvReleaseImage(&R);
+        cvReleaseImage(&G);
+        cvReleaseImage(&B);
+    }
+    else {
+        cvLUT(gray, ret, lutMat);
+    }
+
+    cvReleaseImage(&gray);
+    cvReleaseMat(&lutMat);
+
+    return ret;
+}
+*/
+
+IplImage* gammaCorrection(IplImage *src, double gamma) {
+    IplImage* ret = cvCloneImage(src);
+    IplImage* gray = cvCreateImage(cvGetSize(src), src->depth, 1);
+
+    if (src->nChannels == 3) cvCvtColor(src, gray, CV_RGB2GRAY);
+    else cvCopyImage(src, gray);
+
+    CvMat* lutMat = cvCreateMatHeader(1, 256, CV_8UC1);
+    uchar lut[256];
+    cvSetData(lutMat, lut, 0);
+
+    for (int i = 0; i < 256; i++)
+        lut[i] = uchar(255.0 * pow((i / 255.), 1. / gamma));
+
+    if (src->nChannels == 3) {
+        IplImage* R = cvCreateImage(cvGetSize(src), src->depth, 1);
+        IplImage* G = cvCreateImage(cvGetSize(src), src->depth, 1);
+        IplImage* B = cvCreateImage(cvGetSize(src), src->depth, 1);
+        cvCvtPixToPlane(src, R, G, B, NULL);
+        cvLUT(R, R, lutMat);
+        cvLUT(G, G, lutMat);
+        cvLUT(B, B, lutMat);
+        cvCvtPlaneToPix(R, G, B, NULL, ret);
+        cvReleaseImage(&R);
+        cvReleaseImage(&G);
+        cvReleaseImage(&B);
+    }
+    else {
+        cvLUT(gray, ret, lutMat);
+    }
+
+    cvReleaseImage(&gray);
+    cvReleaseMat(&lutMat);
+
+    return ret;
 }
 
 void CRTracking::trace() {
@@ -107,3 +310,5 @@ void CRTracking::trace() {
         beforeState = state;
     }
 }
+
+/* bright 20 contrast 40 */
