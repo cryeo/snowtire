@@ -52,7 +52,7 @@ void CRTracking::trace() {
 
                     logPath = makeLogPath(Timer::now(), type);
                     _mkdir(logPath.c_str());
-                    cvSaveImage(makeFileName(logPath, currentFrame, ".bmp").c_str(), base);
+                    cvSaveImage(makeFileName(logPath, currentFrame, "bmp").c_str(), base);
                 }
             }
             else {
@@ -70,7 +70,7 @@ void CRTracking::trace() {
                 }
 
                 if (Global::crConfig->debug) {
-                    cvSaveImage(makeFileName(logPath, currentFrame, ".bmp").c_str(), curr);
+                    cvSaveImage(makeFileName(logPath, currentFrame, "bmp").c_str(), curr);
                 }
             }
             break;
@@ -97,7 +97,7 @@ void CRTracking::trace() {
                     fout << "end frame : " << endFrame << std::endl;
                     fout << "optimal frame : " << optimalFrame << std::endl;
                     fout.close();
-                    cvSaveImage(makeFileName(logPath, "optimal", ".bmp").c_str(), optimal);
+                    cvSaveImage(makeFileName(logPath, "optimal", "bmp").c_str(), optimal);
                 }
 
                 idxTire++;
